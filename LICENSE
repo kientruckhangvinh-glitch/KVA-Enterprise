@@ -1,0 +1,77 @@
+# KVA Enterprise Internal License
+
+**Version:** 1.0
+**Effective Date:** 14 July 2026
+
+Copyright © 2026 KVA Enterprise. All rights reserved.
+
+## 1. Purpose
+
+This repository is the proprietary intellectual property of KVA Enterprise and is intended exclusively for authorized internal business use.
+
+## 2. Scope
+
+This license applies to all content stored in this repository, including but not limited to:
+
+* Source code
+* HTML, CSS, JavaScript, Python, and automation scripts
+* SOPs (Standard Operating Procedures)
+* Dashboards
+* Templates
+* AI prompts and AI agents
+* Technical documents
+* Project documentation
+* CAD details, drawings, and design resources
+* Images, icons, and other digital assets
+
+## 3. Ownership
+
+All intellectual property rights remain the exclusive property of KVA Enterprise unless otherwise stated in writing.
+
+## 4. Authorized Use
+
+Authorized users may:
+
+* Access repository contents for company business.
+* Modify or improve documents and source code within assigned responsibilities.
+* Submit changes through the company's Git workflow.
+
+## 5. Restrictions
+
+Without prior written approval from KVA Enterprise, users may not:
+
+* Copy repository contents outside the company.
+* Share repository access with unauthorized persons.
+* Publish repository contents on public platforms.
+* Sell, license, or redistribute repository materials.
+* Remove copyright notices or ownership information.
+
+## 6. Confidentiality
+
+Users must protect confidential company information and comply with all applicable confidentiality obligations.
+
+## 7. Version Control
+
+All modifications must be tracked through Git and follow the company's branching, review, and approval workflow.
+
+## 8. Termination
+
+Upon termination of employment or authorization, users must immediately cease access to this repository and return or delete company information as required by company policy.
+
+## 9. Disclaimer
+
+This repository is provided for internal operational purposes. KVA Enterprise may modify, reorganize, or remove repository contents at any time.
+
+## 10. Contact
+
+Repository Owner: KVA Enterprise
+
+For questions regarding repository access, licensing, or permissions, contact the repository administrator.
+
+---
+
+**KVA Enterprise**
+
+Internal Use Only
+
+All Rights Reserved.
