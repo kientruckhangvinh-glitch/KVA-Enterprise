@@ -1,0 +1,63 @@
+# BÁO CÁO THÁNG CEO · MM/2026
+Người tổng hợp: PM Office · Hạn đóng: ngày 5 tháng sau
+Trạng thái tổng: 🟢 /  / 🔴
+Nguồn tổng: 02_CFO + 03_PM_COO + 04_Sales + 05_Thiet_Ke + 06_Marketing (bản tháng)
+
+──────────────────────────────────────────
+## 0. TÓM TẮT 1 TRANG (5 dòng — CEO chỉ cần đọc phần này vẫn nắm được)
+- Doanh thu: …/… tr = …% kế hoạch
+- Lợi nhuận gộp: …% (ngưỡng: ≥ …%)
+- HĐ ký mới: … hợp đồng · … tỷ
+- Đèn 🔴 lớn nhất: …
+- Quyết định quan trọng nhất tháng tới: …
+
+──────────────────────────────────────────
+## 1. TÀI CHÍNH (nguồn: 02_CFO/2026/2026-MM_Thang.md)
+| Chỉ số | Tháng này | Tháng trước | Kế hoạch | Lũy kế năm | Trạng thái |
+|---|---|---|---|---|---|
+| Doanh thu ghi nhận | | | | | |
+| Lợi nhuận gộp (%) | | | | | |
+| Thu tiền | | | | | |
+| Chi tiền | | | | | |
+| Tồn quỹ cuối kỳ | | | | | |
+| Công nợ >60 ngày | | | | | ≤10% DT quý |
+
+## 2. LỢI NHUẬN TỪNG DỰ ÁN (nguồn: CFO — phần quan trọng nhất tháng)
+| Dự án | Doanh thu | Chi phí | LN gộp | Biên % | Cảnh báo |
+|---|---|---|---|---|---|
+| 2026_NhaAnhHung_Q7 | | | | | 🟢/🟡/🔴 |
+| 2026_CafeHoaSu_Q3 | | | | | |
+| … | | | | | |
+→ Dự án biên < …% bắt buộc kèm 1 dòng nguyên nhân.
+
+## 3. KINH DOANH & MARKETING (nguồn: 04_Sales + 06_Marketing tháng)
+- HĐ ký: … hợp đồng · … tỷ · Tỷ lệ chốt: …%
+- Pipeline cuối kỳ: … tỷ (mục tiêu ≥ 3× kế hoạch tháng sau)
+- CAC/HĐ: … tr (ngưỡng ≤ 8tr)
+- Chân dung mang về HĐ nhiều nhất: [A1/A2/A3] → hàm ý ngân sách tháng sau
+
+## 4. DỰ ÁN · CHẤT LƯỢNG · THIẾT KẾ (nguồn: 03_PM_COO + 12_QA_QC + 05_Thiet_Ke)
+| Dự án | Tiến độ | Lệch | Phát sinh (giá trị) | Nghiệm thu lần 1 | Trạng thái |
+|---|---|---|---|---|---|
+| … | …% | …% | … | …% | |
+- Sự cố an toàn: … · Số vòng sửa thiết kế TB: … (ngưỡng ≤ 2)
+
+## 5. CON NGƯỜI (nguồn: HR)
+- Nhân sự cuối kỳ: … · Mới: … · Nghỉ: …
+- Đào tạo đã hoàn thành: … · Điểm KPI đáng chú ý: …
+
+## 6. XU HƯỚNG (tháng này vs tháng trước vs cùng kỳ)
+- 3 chỉ số TỐT lên: …
+- 3 chỉ số XẤU đi: …
+→ Mỗi chỉ số xấu đi 2 tháng liên tiếp = tự động thành mục 7.
+
+## 7. RỦI RO THÁNG TỚI (tối đa 5, mỗi rủi ro 1 đề xuất)
+| Rủi ro | Xác suất | Tác động | Đề xuất | Người chịu |
+|---|---|---|---|---|
+| VD: công nợ chủ đầu tư X đến hạn thanh toán | | | | |
+
+## 8. CẦN QUYẾT ĐỊNH TẠI HỌP THÁNG (tối đa 3)
+1. … (kèm số liệu nền + deadline quyết)
+
+## 9. MỤC TIÊU THÁNG SAU (3–5 con số, không quá 5)
+- Doanh thu … · Thu tiền … · HĐ ký … · Tồn quỹ ≥ … · Số 🔴 tồn: 0
