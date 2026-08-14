@@ -1,0 +1,67 @@
+# BÁO CÁO THÁNG CFO · MM/2026
+Người lập: Kế toán · Hạn đóng: ngày 3 (nuôi báo cáo CEO ngày 5)
+Trạng thái: 🟢 /  / 🔴
+Nguồn dữ liệu: sổ thu-chi & ngân hàng tại 10_Data/TaiChinh/ (SOP-FIN-001→005)
+
+──────────────────────────────────────────
+## 1. DÒNG TIỀN THÁNG
+| Chỉ tiêu | Tháng này | Lũy kế năm | Kế hoạch | Trạng thái |
+|---|---|---|---|---|
+| Tồn đầu kỳ | | | | |
+| THU — trong đó theo dự án lớn: … | | | | |
+| CHI — trong đó theo nhóm: … | | | | |
+| Tồn cuối kỳ | | | | |
+| **Tháng chi phí cố định phủ được** | … tháng | | ≥ 3 | |
+
+## 2. DOANH THU – CHI PHÍ – LỢI NHUẬN TỪNG DỰ ÁN (job costing)
+| Dự án | GT hợp đồng | DT ghi nhận lũy kế | Chi phí lũy kế | LN gộp | Biên % | Còn lại theo HĐ |
+|---|---|---|---|---|---|---|
+| 2026_NhaAnhHung_Q7 | | | | | | |
+| 2026_CafeHoaSu_Q3 | | | | | | |
+→ Biên < …% bắt buộc kèm nguyên nhân 1 dòng.
+
+### 2.1 Cơ cấu chi phí theo dự án
+| Dự án | Vật liệu | Nhân công | Thầu phụ | Máy móc | Khác |
+|---|---|---|---|---|---|
+| … | | | | | |
+→ Cảnh báo: tỷ nhân công/DT vượt …% = rò rỉ (chấm công, làm lại).
+
+### 2.2 Tiền giữ lại bảo hành (theo dõi riêng, KHÔNG tính vào tồn quỹ tự do)
+| Dự án | Số giữ lại (…%) | Điều kiện nhận | Dự kiến nhận |
+|---|---|---|---|
+
+## 3. CÔNG NỢ PHẢI THU (aging — theo SOP-FIN-003)
+| Khách hàng / Dự án | Tổng | <30 ngày | 30–60 | >60 | Hành động thu tiếp theo |
+|---|---|---|---|---|---|
+| … | | | | | |
+- Tổng >60 ngày: … tr = …% doanh thu quý (ngưỡng ≤ 10%)
+- Khoản >60 lớn nhất: … → đề xuất: …
+
+## 4. CÔNG NỢ PHẢI TRẢ NCC
+| NCC | Phải trả | Đến hạn | Kế hoạch trả | Ưu tiên |
+|---|---|---|---|---|
+| … | | | | Cao/Vừa |
+→ NCC đến hạn mà tồn quỹ không đủ = 🔴 bắt buộc nêu ở mục 7.
+
+## 5. LỊCH DÒNG TIỀN 4 TUẦN TỚI
+| Tuần | Thu dự kiến | Chi bắt buộc | Tồn ước tính | Cảnh báo |
+|---|---|---|---|---|
+| W1 | | | | |
+| W2 | | | | |
+| W3 | | | | |
+| W4 | | | | |
+
+## 6. THUẾ & NGHĨA VỤ
+| Nghĩa vụ | Hạn | Trạng thái |
+|---|---|---|
+| VAT · TNCN · BHXH · Lệ phí | | 🟢/🟡 |
+
+## 7. CẢNH BÁO & ĐỀ XUẤT (mỗi 🟡/🔴 kèm 1 đề xuất)
+1. …
+2. …
+
+──────────────────────────────────────────
+## PHỤ LỤC · HẰNG SỐ QUẢN TRỊ
+- Chi phí cố định/tháng: … tr (thuê VP, lương cứng, phần mềm…)
+- Điểm hòa vốn doanh thu/tháng: … tr
+- Biên gộp mục tiêu toàn công ty: …%
