@@ -1,3 +1,7 @@
+# CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+**Độc lập – Tự do – Hạnh phúc**
+---
+*[Địa điểm], ngày … tháng … năm …*
 ---
 title: Biên bản nghiệm thu công việc xây dựng
 tags: [xây dựng, biên bản, nghiệm thu, mẫu]
