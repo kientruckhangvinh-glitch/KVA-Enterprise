@@ -1,0 +1,12 @@
+# Google Sheets Integration
+gspread>=5.12.0
+google-auth>=2.23.0
+google-auth-oauthlib>=1.1.0
+
+# AI Integration (Claude)
+anthropic>=0.21.0
+
+# Data Processing & Validation
+pandas>=2.0.0
+jsonschema>=4.19.0
+python-dotenv>=1.0.0
