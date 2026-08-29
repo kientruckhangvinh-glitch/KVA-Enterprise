@@ -1,1 +1,146 @@
 # Sync CRM data → AI
+name: Sales Pipeline Sync & AI Analysis
+
+# ==============================================================================
+# 1. TRIGGERS (KÍCH HOẠT)
+# ==============================================================================
+on:
+  schedule:
+    # Chạy hàng ngày lúc 17:00 (5 PM) để cập nhật cảnh báo và pipeline trong ngày
+    - cron: '0 10 * * *' # UTC 10:00 = VN 17:00
+    
+    # Chạy mỗi Thứ 2 lúc 08:00 AM để tạo Báo cáo Tuần cho CEO
+    - cron: '0 1 * * 1'  # UTC 01:00 = VN 08:00 Monday
+    
+  # Cho phép chạy thủ công từ tab Actions trên GitHub
+  workflow_dispatch:
+    inputs:
+      force_full_sync:
+        description: 'Force full data sync from CRM (ignores cache)'
+        required: false
+        default: 'false'
+      target_week:
+        description: 'Target week for report (YYYY-WW), e.g., 2024-42'
+        required: false
+
+# ==============================================================================
+# 2. ENVIRONMENT & SECRETS
+# ==============================================================================
+env:
+  PYTHON_VERSION: '3.10'
+  DATA_REPO: '10_Data'
+  CRM_API_URL: ${{ secrets.CRM_API_URL }}
+  CRM_API_KEY: ${{ secrets.CRM_API_KEY }}
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} # Hoặc API key của LLM bạn dùng
+  SYSTEM_PROMPT_PATH: '11_Automation/prompts/ceo_ai_system_prompt.txt'
+
+# ==============================================================================
+# 3. JOBS (CÁC CÔNG VIỆC)
+# ==============================================================================
+jobs:
+  pipeline-sync-and-analyze:
+    name: Sync, Validate, Process & AI Report
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Cần quyền này để commit báo cáo mới vào repo 10_Data
+
+    steps:
+      # ----------------------------------------------------------------------------
+      # Bước 1: Lấy mã nguồn
+      # ----------------------------------------------------------------------------
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Lấy toàn bộ history để so sánh dữ liệu nếu cần
+
+      # ----------------------------------------------------------------------------
+      # Bước 2: Thiết lập môi trường Python
+      # ----------------------------------------------------------------------------
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r 11_Automation/requirements.txt
+          # Các thư viện thường dùng: pandas, jsonschema, requests, openai, python-dotenv
+
+      # ----------------------------------------------------------------------------
+      # Bước 3: ETL - Extract (Trích xuất dữ liệu từ CRM)
+      # ----------------------------------------------------------------------------
+      - name: Extract Data from CRM
+        run: |
+          echo "🔄 Starting CRM Data Extraction..."
+          python 11_Automation/scripts/extract_crm_data.py \
+            --api-url ${{ env.CRM_API_URL }} \
+            --api-key ${{ env.CRM_API_KEY }} \
+            --output-dir 10_Data/raw/opportunities/ \
+            --force-full-sync ${{ github.event.inputs.force_full_sync || 'false' }}
+
+      # ----------------------------------------------------------------------------
+      # Bước 4: ETL - Transform & Validate (Kiểm tra theo SOP-SAL-001 Section 4 & 13)
+      # ----------------------------------------------------------------------------
+      - name: Validate Data Schema
+        run: |
+          echo "✅ Validating data against SOP-SAL-001 schemas..."
+          python 11_Automation/scripts/validate_data.py \
+            --input 10_Data/raw/opportunities/ \
+            --schema 10_Data/schemas/opportunity_schema.json \
+            --strict-mode true
+
+      # ----------------------------------------------------------------------------
+      # Bước 5: Process - Tính toán Metrics & Kiểm tra Rules (SOP-SAL-001 Section 5, 6, 7)
+      # ----------------------------------------------------------------------------
+      - name: Calculate Weighted Pipeline & Check Alert Rules
+        run: |
+          echo "⚙️ Processing Pipeline Metrics & Rules..."
+          python 11_Automation/scripts/process_pipeline.py \
+            --input 10_Data/raw/opportunities/ \
+            --output-processed 10_Data/processed/pipeline_analysis/ \
+            --output-alerts 10_Data/alerts/ \
+            --config 11_Automation/config/system_config.json
+
+      # ----------------------------------------------------------------------------
+      # Bước 6: AI Analysis - Gọi CEO AI để tạo báo cáo (SOP-SAL-001 Section 11)
+      # ----------------------------------------------------------------------------
+      - name: Generate CEO AI Weekly Report
+        run: |
+          echo "🤖 Generating CEO AI Report..."
+          python 11_Automation/scripts/generate_ai_report.py \
+            --processed-data 10_Data/processed/pipeline_analysis/ \
+            --alerts-data 10_Data/alerts/ \
+            --prompt-file ${{ env.SYSTEM_PROMPT_PATH }} \
+            --output-report 10_Data/ceo_reports/weekly/ \
+            --api-key ${{ env.OPENAI_API_KEY }}
+
+      # ----------------------------------------------------------------------------
+      # Bước 7: Commit & Push kết quả trở lại Repository 10_Data
+      # ----------------------------------------------------------------------------
+      - name: Commit and Push Updated Data & Reports
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add 10_Data/
+          
+          # Chỉ commit nếu có thay đổi
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore(data): auto-update pipeline data & CEO AI report [skip ci]"
+            git push
+            echo "✅ Successfully pushed updated data and reports to 10_Data."
+          fi
+
+      # ----------------------------------------------------------------------------
+      # Bước 8: Notification (Tùy chọn) - Gửi thông báo cho CEO/Sales Manager
+      # ----------------------------------------------------------------------------
+      - name: Notify Slack/Teams on Completion
+        if: always()
+        run: |
+          # Ví dụ gửi webhook đến Slack/Teams
+          # python 11_Automation/scripts/notify_completion.py --status ${{ job.status }}
+          echo "📬 Notification step placeholder. Configure your Slack/Email webhook here."
