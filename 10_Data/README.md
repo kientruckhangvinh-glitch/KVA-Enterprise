@@ -1,7 +1,7 @@
 # 10_Data - Raw & Processed Data Repository
 
 ## 📋 Mô tả
-Repository lưu trữ dữ liệu thô và đã xử lý cho hệ thống Sales Pipeline (SOP-SAL-001)
+Repository lưu trữ dữ liệu thô và đã xử lý cho hệ thống Sales Pipeline (SOP-SAL-001) và là nguồn dữ liệu đầu vào chính (Data Source) cho CEO AI.
 
 ## 📂 Cấu trúc dữ liệu
 
@@ -45,3 +45,16 @@ Repository lưu trữ dữ liệu thô và đã xử lý cho hệ thống Sales 
 - Critical opportunities
 
 ## 🔄 Data Flow
+
+```text
+[Nguồn dữ liệu]                 [10_Data Repository]                 [Hệ thống tiêu thụ]
+                                                        
+CRM / Google Sheets / Excel 
+       │                                                        
+       ▼                                                        
+  /raw/ (Dữ liệu thô) ────────> [ETL / Data Gateway] ────────> /processed/ (Dữ liệu chuẩn)
+       │                                 (11_Automation)              │
+       │                                                              ▼
+       │                                                       [CEO AI / LLM]
+       │                                                              │
+       ──────────────────────────────────────────────────────> /ceo_reports/ & /alerts/
