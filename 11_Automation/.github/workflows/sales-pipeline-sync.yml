@@ -1,146 +1,287 @@
-# Sync CRM data → AI
-name: Sales Pipeline Sync & AI Analysis
+name: Sales Pipeline Sync & CEO AI Report
 
 # ==============================================================================
-# 1. TRIGGERS (KÍCH HOẠT)
+# 1. TRIGGERS (KÍCH HOẠT WORKFLOW)
 # ==============================================================================
 on:
   schedule:
-    # Chạy hàng ngày lúc 17:00 (5 PM) để cập nhật cảnh báo và pipeline trong ngày
-    - cron: '0 10 * * *' # UTC 10:00 = VN 17:00
+    # Chạy hàng ngày lúc 17:00 (5 PM) - Cập nhật pipeline và alerts
+    - cron: '0 10 * * *'  # UTC 10:00 = Vietnam 17:00
     
-    # Chạy mỗi Thứ 2 lúc 08:00 AM để tạo Báo cáo Tuần cho CEO
-    - cron: '0 1 * * 1'  # UTC 01:00 = VN 08:00 Monday
+    # Chạy mỗi Thứ 2 lúc 08:00 AM - Tạo báo cáo tuần cho CEO
+    - cron: '0 1 * * 1'   # UTC 01:00 = Vietnam 08:00 Monday
     
-  # Cho phép chạy thủ công từ tab Actions trên GitHub
+  # Cho phép chạy thủ công từ GitHub Actions tab
   workflow_dispatch:
     inputs:
       force_full_sync:
-        description: 'Force full data sync from CRM (ignores cache)'
+        description: 'Force full data sync (ignore cache)'
         required: false
         default: 'false'
-      target_week:
-        description: 'Target week for report (YYYY-WW), e.g., 2024-42'
+        type: boolean
+      generate_weekly_report:
+        description: 'Generate CEO weekly report'
         required: false
+        default: 'true'
+        type: boolean
 
 # ==============================================================================
-# 2. ENVIRONMENT & SECRETS
+# 2. ENVIRONMENT VARIABLES
 # ==============================================================================
 env:
   PYTHON_VERSION: '3.10'
   DATA_REPO: '10_Data'
-  CRM_API_URL: ${{ secrets.CRM_API_URL }}
-  CRM_API_KEY: ${{ secrets.CRM_API_KEY }}
-  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} # Hoặc API key của LLM bạn dùng
-  SYSTEM_PROMPT_PATH: '11_Automation/prompts/ceo_ai_system_prompt.txt'
+  AUTOMATION_DIR: '11_Automation'
 
 # ==============================================================================
-# 3. JOBS (CÁC CÔNG VIỆC)
+# 3. JOBS
 # ==============================================================================
 jobs:
   pipeline-sync-and-analyze:
-    name: Sync, Validate, Process & AI Report
+    name: Extract → Process → Alert → Report
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Cần quyền này để commit báo cáo mới vào repo 10_Data
-
+      contents: write  # Quyền commit/push báo cáo vào repo
+    
     steps:
       # ----------------------------------------------------------------------------
-      # Bước 1: Lấy mã nguồn
+      # Bước 1: Checkout Repository
       # ----------------------------------------------------------------------------
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Lấy toàn bộ history để so sánh dữ liệu nếu cần
-
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
       # ----------------------------------------------------------------------------
-      # Bước 2: Thiết lập môi trường Python
+      # Bước 2: Setup Python Environment
       # ----------------------------------------------------------------------------
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-
+          cache-dependency-path: ${{ env.AUTOMATION_DIR }}/requirements.txt
+      
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r 11_Automation/requirements.txt
-          # Các thư viện thường dùng: pandas, jsonschema, requests, openai, python-dotenv
-
+          pip install -r ${{ env.AUTOMATION_DIR }}/requirements.txt
+          
       # ----------------------------------------------------------------------------
-      # Bước 3: ETL - Extract (Trích xuất dữ liệu từ CRM)
+      # Bước 3: Prepare Google Credentials
       # ----------------------------------------------------------------------------
-      - name: Extract Data from CRM
+      - name: Setup Google Credentials
         run: |
-          echo "🔄 Starting CRM Data Extraction..."
-          python 11_Automation/scripts/extract_crm_data.py \
-            --api-url ${{ env.CRM_API_URL }} \
-            --api-key ${{ env.CRM_API_KEY }} \
-            --output-dir 10_Data/raw/opportunities/ \
-            --force-full-sync ${{ github.event.inputs.force_full_sync || 'false' }}
-
+          mkdir -p ${{ env.AUTOMATION_DIR }}/creds
+          echo "${{ secrets.GOOGLE_CREDS_JSON }}" > ${{ env.AUTOMATION_DIR }}/creds/google-creds.json
+          
+          # Verify file exists
+          if [ ! -f "${{ env.AUTOMATION_DIR }}/creds/google-creds.json" ]; then
+            echo "❌ Google credentials file not created!"
+            exit 1
+          fi
+          echo "✅ Google credentials configured"
+      
       # ----------------------------------------------------------------------------
-      # Bước 4: ETL - Transform & Validate (Kiểm tra theo SOP-SAL-001 Section 4 & 13)
+      # Bước 4: Extract Data from Google Sheets
       # ----------------------------------------------------------------------------
-      - name: Validate Data Schema
+      - name: Extract Data from Google Sheets
+        id: extract
         run: |
-          echo "✅ Validating data against SOP-SAL-001 schemas..."
-          python 11_Automation/scripts/validate_data.py \
-            --input 10_Data/raw/opportunities/ \
-            --schema 10_Data/schemas/opportunity_schema.json \
-            --strict-mode true
-
+          echo "🔄 Starting data extraction from Google Sheets..."
+          
+          python ${{ env.AUTOMATION_DIR }}/scripts/extract_from_sheets.py \
+            --creds ${{ env.AUTOMATION_DIR }}/creds/google-creds.json \
+            --sheet-id ${{ secrets.SHEET_ID }} \
+            --output-dir ${{ env.DATA_REPO }}/raw/
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ Extraction completed successfully"
+            echo "extraction_time=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Extraction failed"
+            exit 1
+          fi
+      
       # ----------------------------------------------------------------------------
-      # Bước 5: Process - Tính toán Metrics & Kiểm tra Rules (SOP-SAL-001 Section 5, 6, 7)
+      # Bước 5: Process Pipeline & Check Alert Rules (SOP-SAL-001)
       # ----------------------------------------------------------------------------
-      - name: Calculate Weighted Pipeline & Check Alert Rules
+      - name: Process Pipeline & Generate Alerts
+        id: process
         run: |
-          echo "⚙️ Processing Pipeline Metrics & Rules..."
-          python 11_Automation/scripts/process_pipeline.py \
-            --input 10_Data/raw/opportunities/ \
-            --output-processed 10_Data/processed/pipeline_analysis/ \
-            --output-alerts 10_Data/alerts/ \
-            --config 11_Automation/config/system_config.json
-
+          echo "⚙️ Processing pipeline data and checking rules..."
+          
+          # Find the latest opportunities file
+          LATEST_FILE=$(ls -t ${{ env.DATA_REPO }}/raw/opportunities/*.json | head -n1)
+          
+          if [ -z "$LATEST_FILE" ]; then
+            echo "❌ No opportunities file found!"
+            exit 1
+          fi
+          
+          echo "📂 Processing file: $LATEST_FILE"
+          
+          python ${{ env.AUTOMATION_DIR }}/scripts/process_and_alert.py \
+            --input "$LATEST_FILE" \
+            --config ${{ env.AUTOMATION_DIR }}/config/system_config.json \
+            --out-processed ${{ env.DATA_REPO }}/processed/pipeline_analysis/ \
+            --out-alerts ${{ env.DATA_REPO }}/alerts/
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ Processing completed successfully"
+            
+            # Extract metrics for summary
+            METRICS_FILE="${{ env.DATA_REPO }}/processed/pipeline_analysis/pipeline_metrics.json"
+            if [ -f "$METRICS_FILE" ]; then
+              TOTAL_OPP=$(python -c "import json; print(json.load(open('$METRICS_FILE'))['total_opportunities'])")
+              WEIGHTED=$(python -c "import json; print(f\"{json.load(open('$METRICS_FILE'))['total_weighted_value']:,.0f}\")")
+              echo "total_opportunities=$TOTAL_OPP" >> $GITHUB_OUTPUT
+              echo "weighted_pipeline=$WEIGHTED" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "❌ Processing failed"
+            exit 1
+          fi
+      
       # ----------------------------------------------------------------------------
-      # Bước 6: AI Analysis - Gọi CEO AI để tạo báo cáo (SOP-SAL-001 Section 11)
+      # Bước 6: Generate CEO AI Report using Claude
       # ----------------------------------------------------------------------------
       - name: Generate CEO AI Weekly Report
+        id: report
+        if: github.event.inputs.generate_weekly_report == 'true' || github.event_name == 'schedule'
         run: |
-          echo "🤖 Generating CEO AI Report..."
-          python 11_Automation/scripts/generate_ai_report.py \
-            --processed-data 10_Data/processed/pipeline_analysis/ \
-            --alerts-data 10_Data/alerts/ \
-            --prompt-file ${{ env.SYSTEM_PROMPT_PATH }} \
-            --output-report 10_Data/ceo_reports/weekly/ \
-            --api-key ${{ env.OPENAI_API_KEY }}
-
+          echo "🤖 Generating CEO AI report with Claude..."
+          
+          METRICS_FILE="${{ env.DATA_REPO }}/processed/pipeline_analysis/pipeline_metrics.json"
+          ALERTS_FILE="${{ env.DATA_REPO }}/alerts/pipeline_alerts.json"
+          
+          if [ ! -f "$METRICS_FILE" ] || [ ! -f "$ALERTS_FILE" ]; then
+            echo "⚠️ Skipping report generation - no data available"
+            echo "report_generated=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          python ${{ env.AUTOMATION_DIR }}/scripts/generate_ceo_report.py \
+            --metrics "$METRICS_FILE" \
+            --alerts "$ALERTS_FILE" \
+            --api-key ${{ secrets.ANTHROPIC_API_KEY }} \
+            --output ${{ env.DATA_REPO }}/ceo_reports/weekly/ \
+            --model claude-3-5-sonnet-20241022
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ CEO report generated successfully"
+            echo "report_generated=true" >> $GITHUB_OUTPUT
+            
+            # Find the latest report
+            LATEST_REPORT=$(ls -t ${{ env.DATA_REPO }}/ceo_reports/weekly/*.md | head -n1)
+            echo "report_file=$LATEST_REPORT" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Report generation failed"
+            echo "report_generated=false" >> $GITHUB_OUTPUT
+          fi
+      
       # ----------------------------------------------------------------------------
-      # Bước 7: Commit & Push kết quả trở lại Repository 10_Data
+      # Bước 7: Commit and Push Results to Repository
       # ----------------------------------------------------------------------------
-      - name: Commit and Push Updated Data & Reports
+      - name: Commit and Push Updated Data
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          git add 10_Data/
+          # Add all changes in 10_Data directory
+          git add ${{ env.DATA_REPO }}/
           
-          # Chỉ commit nếu có thay đổi
+          # Check if there are changes to commit
           if git diff --staged --quiet; then
-            echo "No changes to commit."
+            echo "ℹ️ No changes to commit"
           else
-            git commit -m "chore(data): auto-update pipeline data & CEO AI report [skip ci]"
-            git push
-            echo "✅ Successfully pushed updated data and reports to 10_Data."
+            # Create commit message
+            COMMIT_MSG="chore(data): auto-update pipeline data & CEO AI report"
+            
+            if [ "${{ steps.report.outputs.report_generated }}" == "true" ]; then
+              COMMIT_MSG="$COMMIT_MSG [skip ci]"
+            fi
+            
+            git commit -m "$COMMIT_MSG"
+            
+            # Push with retry logic
+            MAX_RETRIES=3
+            RETRY_COUNT=0
+            
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              if git push origin main; then
+                echo "✅ Successfully pushed changes to main branch"
+                break
+              else
+                RETRY_COUNT=$((RETRY_COUNT + 1))
+                echo "⚠️ Push failed, retrying ($RETRY_COUNT/$MAX_RETRIES)..."
+                git pull --rebase origin main
+                sleep 5
+              fi
+            done
+            
+            if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+              echo " Failed to push after $MAX_RETRIES attempts"
+              exit 1
+            fi
           fi
-
+      
       # ----------------------------------------------------------------------------
-      # Bước 8: Notification (Tùy chọn) - Gửi thông báo cho CEO/Sales Manager
+      # Bước 8: Upload Report as Artifact (for download)
       # ----------------------------------------------------------------------------
-      - name: Notify Slack/Teams on Completion
+      - name: Upload CEO Report as Artifact
+        if: steps.report.outputs.report_generated == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ceo-weekly-report
+          path: ${{ env.DATA_REPO }}/ceo_reports/weekly/*.md
+          retention-days: 30
+      
+      # ----------------------------------------------------------------------------
+      # Bước 9: Send Notification (Optional - Slack/Teams/Discord)
+      # ----------------------------------------------------------------------------
+      - name: Send Workflow Notification
         if: always()
         run: |
-          # Ví dụ gửi webhook đến Slack/Teams
-          # python 11_Automation/scripts/notify_completion.py --status ${{ job.status }}
-          echo "📬 Notification step placeholder. Configure your Slack/Email webhook here."
+          STATUS="${{ job.status }}"
+          
+          if [ "$STATUS" == "success" ]; then
+            echo "✅ Workflow completed successfully!"
+            echo ""
+            echo "📊 Pipeline Summary:"
+            echo "   - Total Opportunities: ${{ steps.process.outputs.total_opportunities }}"
+            echo "   - Weighted Pipeline: ${{ steps.process.outputs.weighted_pipeline }} VND"
+            if [ "${{ steps.report.outputs.report_generated }}" == "true" ]; then
+              echo "   - CEO Report: Generated ✅"
+            else
+              echo "   - CEO Report: Skipped ⏭️"
+            fi
+          else
+            echo "❌ Workflow failed!"
+            echo "Please check the logs for details."
+          fi
+      
+      # ----------------------------------------------------------------------------
+      # Bước 10: Cleanup Sensitive Files
+      # ----------------------------------------------------------------------------
+      - name: Cleanup Credentials
+        if: always()
+        run: |
+          rm -rf ${{ env.AUTOMATION_DIR }}/creds/
+          echo "🧹 Cleaned up sensitive credentials"
+
+# ==============================================================================
+# 4. WORKFLOW SUMMARY
+# ==============================================================================
+# This workflow:
+# 1. Extracts data from Google Sheets (Opportunities tab)
+# 2. Validates and processes data according to SOP-SAL-001
+# 3. Calculates Weighted Pipeline and checks alert rules
+# 4. Generates CEO AI report using Claude (on Mondays)
+# 5. Commits all results back to 10_Data repository
+# 
+# Schedule:
+# - Daily at 17:00 Vietnam time (data sync & alerts)
+# - Monday at 08:00 Vietnam time (full report)
+# ==============================================================================
