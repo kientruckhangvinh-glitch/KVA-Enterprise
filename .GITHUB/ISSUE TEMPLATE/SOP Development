@@ -1,0 +1,48 @@
+---
+name:  SOP Development
+about: Tạo SOP mới hoặc cập nhật SOP hiện có
+title: '[SOP-XXX-NNN] Tên quy trình'
+labels: ['sop', 'documentation']
+assignees: ''
+---
+
+##  Mô Tả
+Viết SOP cho quy trình [Tên quy trình]
+
+**Phòng ban:** [Sales/PM/Design/HR/Finance/Legal]
+**Mã SOP:** [VD: SOP-SAL-002]
+
+## 🎯 Mục Đích
+<!-- Mô tả ngắn gọn mục tiêu của SOP này -->
+
+## ✅ Acceptance Criteria
+- [ ] Có lưu đồ quy trình (Mermaid diagram)
+- [ ] Định nghĩa rõ trách nhiệm từng phòng ban
+- [ ] Có biểu mẫu đính kèm (liệt kê cụ thể)
+- [ ] Tích hợp với automation (nếu có)
+- [ ] Được review và approve bởi CEO
+- [ ] Đã training cho nhân viên liên quan
+
+## 🔗 Liên Kết
+- **Repository:** 02_SOP/[folder]/
+- **File:** [Tên file .md]
+- **Related SOPs:** 
+  - [ ] SOP-XXX-001
+  - [ ] SOP-XXX-002
+- **Automation Scripts:**
+  - [ ] Script 1
+  - [ ] Script 2
+
+## 📊 Metadata
+- **Department:** [Department]
+- **Priority:** [P0-Critical / P1-High / P2-Medium / P3-Low]
+- **Effort:** [XS / S / M / L / XL]
+- **Assignee:** @username
+- **Target Date:** [YYYY-MM-DD]
+
+## 📝 Ghi Chú
+<!-- Thêm thông tin bổ sung nếu cần -->
+
+##  Next Steps
+- [ ] Task 1
+- [ ] Task 2
