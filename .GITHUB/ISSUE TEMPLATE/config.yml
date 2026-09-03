@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name:  Documentation
+    url: https://github.com/kientruckhangvinh-glitch/KVA-Enterprise/tree/main/01_Governance
+    about: Đọc tài liệu quản trị trước khi tạo issue
+  - name:  Discussion
+    url: https://github.com/kientruckhangvinh-glitch/KVA-Enterprise/discussions
+    about: Thảo luận về kiến trúc hệ thống
