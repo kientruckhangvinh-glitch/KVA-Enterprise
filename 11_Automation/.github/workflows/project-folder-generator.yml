@@ -1,0 +1,49 @@
+name: Auto Create Project Folders
+
+on:
+  schedule:
+    # Chạy mỗi 6 tiếng để quét deal mới
+    - cron: '0 */6 * * *' 
+  workflow_dispatch: # Cho phép chạy thủ công
+
+jobs:
+  create-folders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: pip install gspread google-auth-oauthlib
+
+      - name: Setup Google Credentials
+        run: |
+          mkdir -p 11_Automation/creds
+          echo "${{ secrets.GOOGLE_CREDS_JSON }}" > 11_Automation/creds/google-creds.json
+
+      - name: Run Project Folder Generator
+        env:
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+          GOOGLE_CREDS_PATH: 11_Automation/creds/google-creds.json
+        run: python 11_Automation/scripts/create_project_folder.py
+
+      - name: Commit New Folders to GitHub
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add 03_Projects/
+          if git diff --staged --quiet; then
+            echo "Không có thư mục mới nào được tạo."
+          else
+            git commit -m "feat(auto): tạo thư mục dự án mới từ Google Sheets [skip ci]"
+            git push
+          fi
+
+      - name: Cleanup Credentials
+        if: always()
+        run: rm -rf 11_Automation/creds/
